@@ -177,7 +177,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
       isDispatching = false
     }
 
-    // 执行完reducer后通知监听器队列
+    //执行完reducer后通知监听器队列， 在执行监听器前执行同步监听器队列副本到当前监听器队列
     const listeners = (currentListeners = nextListeners)
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]

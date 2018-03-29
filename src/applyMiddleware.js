@@ -36,6 +36,7 @@ export default function applyMiddleware(...middlewares) {
     }
     // 执行每个中间件，固定住要传入的store API
     chain = middlewares.map(middleware => middleware(middlewareAPI))
+    // 重置dispath为compose后的函数，以便dispath action时所有中间件都可以得到调用
     dispatch = compose(...chain)(store.dispatch)
 
     return {

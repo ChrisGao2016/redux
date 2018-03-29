@@ -1,5 +1,6 @@
 function bindActionCreator(actionCreator, dispatch) {
   return function() {
+    // 将dispatch绑定到actionCreator上
     return dispatch(actionCreator.apply(this, arguments))
   }
 }
@@ -39,6 +40,7 @@ export default function bindActionCreators(actionCreators, dispatch) {
     )
   }
 
+  // 获取actionCreators对象所有的key，依次绑定dispatch
   const keys = Object.keys(actionCreators)
   const boundActionCreators = {}
   for (let i = 0; i < keys.length; i++) {

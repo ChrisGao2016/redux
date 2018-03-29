@@ -2,6 +2,7 @@ import ActionTypes from './utils/actionTypes'
 import warning from './utils/warning'
 import isPlainObject from './utils/isPlainObject'
 
+// 返回dispatch未定义action时的错误消息
 function getUndefinedStateErrorMessage(key, action) {
   const actionType = action && action.type
   const actionDescription =
@@ -14,6 +15,7 @@ function getUndefinedStateErrorMessage(key, action) {
   )
 }
 
+// 验证state，reducer，action是否有效
 function getUnexpectedStateShapeWarningMessage(
   inputState,
   reducers,
@@ -61,10 +63,11 @@ function getUnexpectedStateShapeWarningMessage(
     )
   }
 }
-
+// 验证reducers对象中每一个reducer在初始化和处理一个随机的action时是否有返回state，即有默认返回值
 function assertReducerShape(reducers) {
   Object.keys(reducers).forEach(key => {
     const reducer = reducers[key]
+    // 验证初始化时是否有返回值
     const initialState = reducer(undefined, { type: ActionTypes.INIT })
 
     if (typeof initialState === 'undefined') {
@@ -77,6 +80,7 @@ function assertReducerShape(reducers) {
       )
     }
 
+    // 验证处理一个随机的action是否有返回值
     const type =
       '@@redux/PROBE_UNKNOWN_ACTION_' +
       Math.random()
@@ -116,6 +120,7 @@ function assertReducerShape(reducers) {
  * passed object, and builds a state object with the same shape.
  */
 export default function combineReducers(reducers) {
+  // 获取reducers的每一个属性的key
   const reducerKeys = Object.keys(reducers)
   const finalReducers = {}
   for (let i = 0; i < reducerKeys.length; i++) {
@@ -126,7 +131,7 @@ export default function combineReducers(reducers) {
         warning(`No reducer provided for key "${key}"`)
       }
     }
-
+    // 将处理state每一个部分的reducer加入finalReducers对象中
     if (typeof reducers[key] === 'function') {
       finalReducers[key] = reducers[key]
     }
@@ -145,11 +150,13 @@ export default function combineReducers(reducers) {
     shapeAssertionError = e
   }
 
+  // 返回合成后的 reducer
   return function combination(state = {}, action) {
     if (shapeAssertionError) {
       throw shapeAssertionError
     }
 
+    // 非生产环境会检验参数是否都正确
     if (process.env.NODE_ENV !== 'production') {
       const warningMessage = getUnexpectedStateShapeWarningMessage(
         state,
@@ -167,13 +174,14 @@ export default function combineReducers(reducers) {
     for (let i = 0; i < finalReducerKeys.length; i++) {
       const key = finalReducerKeys[i]
       const reducer = finalReducers[key]
-      const previousStateForKey = state[key]
-      const nextStateForKey = reducer(previousStateForKey, action)
+      const previousStateForKey = state[key] // 获取当前子 state
+      const nextStateForKey = reducer(previousStateForKey, action) // 执行各子 reducer 获取子 nextState
+      // 如果reducer返回未定义的值抛出错误
       if (typeof nextStateForKey === 'undefined') {
         const errorMessage = getUndefinedStateErrorMessage(key, action)
         throw new Error(errorMessage)
       }
-      nextState[key] = nextStateForKey
+      nextState[key] = nextStateForKey // 将子 nextState 挂载到对应的键名
       hasChanged = hasChanged || nextStateForKey !== previousStateForKey
     }
     return hasChanged ? nextState : state
